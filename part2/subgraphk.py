@@ -2,12 +2,25 @@
 
 from dash import html, Dash
 import dash_cytoscape as cyto
+from dash.dependencies import Input, Output
+
 import json
 import os
 import sys
 
 class Global():
     folderpath = None
+
+# http://127.0.0.1:8050/
+app = Dash(__name__)
+
+def getOutStyle() -> dict:
+    return {
+    'pre': {
+        'border': 'thin lightgrey solid',
+        'overflowX': 'scroll'
+    }
+}
 
 def getStylesheet() -> list:
     # https://dash.plotly.com/cytoscape/styling
@@ -22,14 +35,18 @@ def getStylesheet() -> list:
                 'selector': '.before',
                 'style': {
                     'background-color': 'blue',
-                    'line-color': 'blue'
+                    'line-color': 'blue',
+                    'curve-style': 'bezier',
+                    'target-arrow-shape': 'triangle',
                 }
             },
             {
                 'selector': '.after',
                 'style': {
                     'background-color': 'red',
-                    'line-color': 'red'
+                    'line-color': 'red',
+                    'curve-style': 'bezier',
+                    'target-arrow-shape': 'triangle',
                 }
             }
     ]
@@ -65,8 +82,16 @@ def getElements() -> list:
     all_k = all_sub.keys()
     all_vertex = []
     for k in all_k:
-        all_vertex.append({"data" : {"id" : f"{k}", "label" : f"{k}"}})
+        all_vertex.append({"data" : {"id" : f"{k}", "label" : f"{all_sub[k][:7]}", "sub_name" : f"{all_sub[k]}"}})
     return all_vertex + all_edges
+
+@app.callback(Output('cytoscape-tapNodeData-json', 'children'),
+              Input('practice_part2', 'tapNodeData'))
+def displayTapNodeData(data):
+    #return json.dumps(data)
+    if(data == None or data["sub_name"] == None):
+        return "None"
+    return f"{data['sub_name']} (if={data['id']})"
 
 if __name__ == '__main__':
     buffPath = sys.argv[1]
@@ -76,15 +101,16 @@ if __name__ == '__main__':
         exit()
     Global.folderpath = buffPath
 
-    # http://127.0.0.1:8050/
-    app = Dash(__name__)
     app.layout = html.Div([
         cyto.Cytoscape(
-                id = "test",
-                layout = {"name" : "random"},
-                style = {"width" : "100%", "height" : "1080px"},
+                id = "practice_part2",
+                #layout = {"name" : "random"},
+                #layout = {"name" : "circle"},
+                layout = {"name" : "breadthfirst", "roots" : [2026890]},
+                style = {"width" : "100%", "height" : "720px"},
                 elements = getElements(),
                 stylesheet = getStylesheet()
-            )
+            ),
+        html.Pre(id='cytoscape-tapNodeData-json', style = getOutStyle()['pre'])
         ])
     app.run_server(debug=True)
