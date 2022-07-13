@@ -18,8 +18,11 @@ def getOutStyle() -> dict:
     return {
     'pre': {
         'border': 'thin lightgrey solid',
-        'overflowX': 'scroll'
-        #'overflowX': 'visible'
+        #'overflowX': 'scroll',
+        #'overflowX': 'visible',
+        'overflowX': 'hidden',
+        "white-space": "pre-wrap",
+        "font-size": "20px"
     }
 }
 
@@ -122,12 +125,28 @@ def getElements() -> list:
                             subNAME = v_i["data"]["sub_name"]
                             sub1 = f"\"{name_source}\" (id={k_source})"
                             sub2 = f"\"{subNAME}\" (id={subID})"
-                            erMsg = f"* Предмет {sub1} говорит, что дальше нужно изучать {sub2}, но {sub2} не требует изучение {sub1}\n\n"
+                            erMsg = f"⚠️ Предмет {sub1} говорит, что дальше нужно изучать {sub2}, но {sub2} не требует изучение {sub1}. \n\n"
                             if "error_msg" not in v_i["data"]:
                                 v_i["data"]["error_msg"] = erMsg
                                 v_i["classes"] = "triangle"
                             else:
                                 v_i["data"]["error_msg"] += erMsg
+    
+    d_max_root = {}
+    for e_i in all_edges:
+        sID = e_i["data"]["source"]
+        if(sID not in d_max_root):
+            d_max_root[sID] = 1
+        else:
+            d_max_root[sID]-=-1
+    kk = d_max_root.keys()
+    kk_max = 0
+    kk_nmax = None
+    for kk_i in kk:
+        if(d_max_root[kk_i] > kk_max):
+            kk_max = d_max_root[kk_i]
+            kk_nmax = kk_i
+    Global.rootID = kk_nmax
                 
 
     
@@ -152,16 +171,18 @@ if __name__ == '__main__':
         exit()
     Global.folderpath = buffPath
 
+    l_elements = getElements()
+    l_stylesheet = getStylesheet()
     app.layout = html.Div([
         cyto.Cytoscape(
                 id = "practice_part2",
                 #layout = {"name" : "random"},
                 #layout = {"name" : "circle"},
-                layout = {"name" : "breadthfirst"},
-                #layout = {"name" : "breadthfirst", "roots" : [2026890]},
+                #layout = {"name" : "breadthfirst"},
+                layout = {"name" : "breadthfirst", "roots" : [Global.rootID]},
                 style = {"width" : "100%", "height" : "720px"},
-                elements = getElements(),
-                stylesheet = getStylesheet()
+                elements = l_elements,
+                stylesheet = l_stylesheet
             ),
         html.Pre(id='cytoscape-tapNodeData-json', style = getOutStyle()['pre'])
         ])
