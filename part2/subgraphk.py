@@ -25,7 +25,10 @@ def getOutStyle() -> dict:
         "font-size": "20px",
         'position': 'absolute',
         'background-color':'white',
-        'max-height':'20%'
+        'max-height':'20%',
+        'width': 'calc(100vw - 38px)',
+        'padding': '10px',
+        'margin': '0'
     }
 }
 
@@ -148,6 +151,26 @@ def getElements() -> list:
                             else:
                                 v_i["data"]["error_msg"] += erMsg
     
+    # Ищем одиннаковые названия
+    if(True):
+        for i in range(len(all_vertex)):
+            v_name = all_vertex[i]["data"]["sub_name"]
+            err_text = "⛔ Такие же имена имеют id: "
+            if_err_text = False
+            for j in range(len(all_vertex)):
+                if(j == i):
+                    continue
+                if(all_vertex[j]["data"]["sub_name"] == v_name):
+                    err_text += f"{all_vertex[j]['data']['id']} "
+                    if_err_text = True
+            err_text += "\n\n"
+            if(if_err_text):
+                if "error_msg" not in all_vertex[i]["data"]:
+                    all_vertex[i]["data"]["error_msg"] = err_text
+                    all_vertex[i]["classes"] = "triangle"
+                else:
+                    all_vertex[i]["data"]["error_msg"] += err_text
+    
     d_max_root = {}
     for e_i in all_edges:
         sID = e_i["data"]["source"]
@@ -169,7 +192,6 @@ def getElements() -> list:
        a_roots.append([kk_i, d_max_root[kk_i]])
     ROOTS_NUM = int(len(a_roots)*0.1)
     buff = sorted(a_roots, key=lambda x : x[1], reverse=True)[:ROOTS_NUM]
-    print(buff)
     Global.rootIDs = []
     for item in buff:
         Global.rootIDs.append(item[0])
