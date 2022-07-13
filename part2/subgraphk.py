@@ -22,7 +22,10 @@ def getOutStyle() -> dict:
         #'overflowX': 'visible',
         'overflowX': 'hidden',
         "white-space": "pre-wrap",
-        "font-size": "20px"
+        "font-size": "20px",
+        'position': 'absolute',
+        'background-color':'white',
+        'max-height':'20%'
     }
 }
 
@@ -32,6 +35,7 @@ def getStylesheet() -> list:
             {
                 'selector': 'node',
                 'style': {
+                    'background-color': '#BFD7B5',
                     'content': 'data(label)'
                 }
             },
@@ -63,8 +67,19 @@ def getStylesheet() -> list:
     ]
     return style
 
+def normalize_text(s : str, where_wrap: int) -> str:
+    res = ""
+    N = len(s)
+    i = where_wrap
+    i_prev = 0
+    while(i < N+where_wrap):
+        res += s[i_prev:i] + "\n\n"
+        i_prev = i
+        i+=where_wrap
+    return res[:-1]
+
 def getElements() -> list:
-    SYMBOLS_NUM = 10 # Количество отображаемых символов
+    SYMBOLS_NUM = 12 # Количество отображаемых символов перед переносом
 
     folderpath = Global.folderpath 
     files_buff = [os.path.join(path, name) for path, subdirs, files in os.walk(folderpath) for name in files]
@@ -95,6 +110,7 @@ def getElements() -> list:
     all_k = all_sub.keys()
     all_vertex = []
     for k in all_k:
+        #all_vertex.append({"data" : {"id" : f"{k}", "label" : f"{normalize_text(all_sub[k], SYMBOLS_NUM)}", "sub_name" : f"{all_sub[k]}"}})
         all_vertex.append({"data" : {"id" : f"{k}", "label" : f"{all_sub[k][:SYMBOLS_NUM]}", "sub_name" : f"{all_sub[k]}"}})
 
     # Отобразить ошибки
@@ -140,13 +156,24 @@ def getElements() -> list:
         else:
             d_max_root[sID]-=-1
     kk = d_max_root.keys()
-    kk_max = 0
-    kk_nmax = None
+    # kk_max = 0
+    # kk_nmax = None
+    # for kk_i in kk:
+    #     if(d_max_root[kk_i] > kk_max):
+    #         kk_max = d_max_root[kk_i]
+    #         kk_nmax = kk_i
+    # Global.rootIDs = kk_nmax
+
+    a_roots = []
     for kk_i in kk:
-        if(d_max_root[kk_i] > kk_max):
-            kk_max = d_max_root[kk_i]
-            kk_nmax = kk_i
-    Global.rootID = kk_nmax
+       a_roots.append([kk_i, d_max_root[kk_i]])
+    ROOTS_NUM = int(len(a_roots)*0.1)
+    buff = sorted(a_roots, key=lambda x : x[1], reverse=True)[:ROOTS_NUM]
+    print(buff)
+    Global.rootIDs = []
+    for item in buff:
+        Global.rootIDs.append(item[0])
+
                 
 
     
@@ -158,7 +185,7 @@ def displayTapNodeData(data):
     #return json.dumps(data)
     if(data == None or data["sub_name"] == None):
         return "None"
-    res = f"{data['sub_name']} (if={data['id']})\n"
+    res = f"{data['sub_name']} (id={data['id']})\n"
     if("error_msg" in data):
         res += f"\n{data['error_msg']}"
     return res
@@ -179,8 +206,10 @@ if __name__ == '__main__':
                 #layout = {"name" : "random"},
                 #layout = {"name" : "circle"},
                 #layout = {"name" : "breadthfirst"},
-                layout = {"name" : "breadthfirst", "roots" : [Global.rootID]},
-                style = {"width" : "100%", "height" : "720px"},
+                layout = {"name" : "breadthfirst", "roots" : Global.rootIDs},
+                #style = {"width" : "100%", "height" : "720px"},
+                #style = {"width" : "calc(100vw)", "height" : "calc(100vh)"},
+                style = {"width" : "calc(100vw - 10px)", "height" : "calc(100vh - 10px)", "position":"absolute"},
                 elements = l_elements,
                 stylesheet = l_stylesheet
             ),
