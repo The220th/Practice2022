@@ -77,6 +77,11 @@ def removeElementByClass(className : str):
     script = f"return document.getElementsByClassName({className})[0].remove();"
     wd.execute_script(script)
 
+def canselDownload():
+    wd = Global.webdriver
+    script = "document.querySelector('downloads-manager').shadowRoot.querySelector('#downloadsList downloads-item').shadowRoot.querySelector(\"cr-button[focus-type='cancel']\").click()"
+    wd.execute_script(script)
+
 if __name__ == '__main__':
     argc = len(sys.argv)
     if(argc != 2):
@@ -148,6 +153,8 @@ if __name__ == '__main__':
             else:
                 plog("Wait... The link is not ready yet as the file has not been converted yet mb. I'll try to wait some more.")
         plog(f"Trying close browser as soon as possible...")
+
+        #canselDownload()
 
     except Exception as ex:
         print(ex)
